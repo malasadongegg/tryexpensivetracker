@@ -9,8 +9,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'templates'))
+template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'templates')
+app = Flask(__name__, template_folder=template_path)
 app.secret_key = os.getenv("SECRET_KEY", "fallback-secret-key")
+
+
+@app.route('/test')
+def test():
+    exists = os.path.exists(template_path)
+    files = str(os.listdir(template_path)) if exists else 'NOT FOUND'
+    return 'Template path: ' + template_path + ' | Exists: ' + str(exists) + ' | Files: ' + files
 
 
 # ── Database ──────────────────────────────────────────────────────────────────
