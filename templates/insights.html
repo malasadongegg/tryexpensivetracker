@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Insights – Subscription Manager</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: { primary: "#136dec" }, fontFamily: { display: ["Inter"] } } }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+
+<body class="bg-slate-50 font-display">
+
+<!--
+  Pass Flask data cleanly into the page via JSON in <script type="application/json"> tags.
+  This keeps ALL Jinja out of JS blocks, eliminating every linter error.
+-->
+<script type="application/json" id="data-by-category">
+  {{ by_category | tojson }}
+</script>
+<script type="application/json" id="data-subs">
+  {{ subs | tojson }}
+</script>
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
+  <aside class="w-64 bg-white border-r border-slate-200 p-6 flex flex-col flex-shrink-0">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
+      </div>
+      <h1 class="font-bold text-lg text-slate-900">Subscription Manager</h1>
+    </div>
+    <nav class="space-y-1 flex-1">
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors">
+        <span class="material-symbols-outlined text-lg">dashboard</span>Dashboard
+      </a>
+      <a href="/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors">
+        <span class="material-symbols-outlined text-lg">receipt_long</span>Subscriptions
+      </a>
+      <a href="/insights" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm">
+        <span class="material-symbols-outlined text-lg">insights</span>Insights
+      </a>
+    </nav>
+    <div class="border-t border-slate-100 pt-4 mt-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+          {{ session.username[0] | upper }}
+        </div>
+        <span class="text-sm font-medium text-slate-700">{{ session.username }}</span>
+      </div>
+      <a href="/logout" class="flex items-center gap-2 text-sm text-slate-500 hover:text-red-500 transition-colors">
+        <span class="material-symbols-outlined text-lg">logout</span>Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────────────────── -->
+  <main class="flex-1 p-8 overflow-y-auto">
+
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-slate-900">Insights</h2>
+      <p class="text-slate-500 text-sm mt-0.5">A breakdown of your subscription spending</p>
+    </div>
+
+    <!-- Top stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">payments</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Total</p>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ total }}</h3>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="h-11 w-11 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+          <span class="material-symbols-outlined">calendar_month</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Annual Estimated</p>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ annual }}</h3>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div class="h-11 w-11 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <span class="material-symbols-outlined">category</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Categories</p>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">{{ by_category | length }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+      <!-- Donut -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 class="font-bold text-slate-900 mb-1">Spending by Category</h3>
+        <p class="text-slate-500 text-xs mb-4">Monthly equivalent per category</p>
+        {% if by_category %}
+          <div class="flex items-center justify-center">
+            <canvas id="donut-chart" style="max-height:260px;"></canvas>
+          </div>
+        {% else %}
+          <div class="flex items-center justify-center h-48 text-slate-400 text-sm">No data yet</div>
+        {% endif %}
+      </div>
+
+      <!-- Bar -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h3 class="font-bold text-slate-900 mb-1">Top Subscriptions by Cost</h3>
+        <p class="text-slate-500 text-xs mb-4">Monthly equivalent per service</p>
+        {% if subs %}
+          <canvas id="bar-chart" style="max-height:260px;"></canvas>
+        {% else %}
+          <div class="flex items-center justify-center h-48 text-slate-400 text-sm">No data yet</div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Breakdown table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900">Spending Breakdown</h3>
+      </div>
+      <table class="w-full text-left">
+        <thead class="bg-slate-50 border-b border-slate-100">
+          <tr>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Service</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Category</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Billed</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Monthly</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Annual</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for sub in subs %}
+            {% set p = sub.price | float %}
+            {% if sub.billing_cycle == 'yearly' %}
+              {% set monthly = (p / 12) | round(2) %}
+              {% set annual_val = p %}
+            {% elif sub.billing_cycle == 'weekly' %}
+              {% set monthly = (p * 4.33) | round(2) %}
+              {% set annual_val = (p * 52) | round(2) %}
+            {% else %}
+              {% set monthly = p %}
+              {% set annual_val = (p * 12) | round(2) %}
+            {% endif %}
+          <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-6 py-4 font-medium text-slate-900">{{ sub.name }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                {{ sub.category or 'General' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right text-sm">
+              ₱{{ "%.2f" | format(p) }}
+              <span class="text-slate-400 text-xs">/{{ sub.billing_cycle }}</span>
+            </td>
+            <td class="px-6 py-4 text-right text-sm font-medium text-slate-900">₱{{ "%.2f" | format(monthly) }}</td>
+            <td class="px-6 py-4 text-right text-sm font-medium text-slate-900">₱{{ "%.2f" | format(annual_val) }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center text-slate-400 text-sm">No subscriptions yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- Pure JavaScript — zero Jinja tags, zero linter errors -->
+<script>
+  const COLORS = [
+    '#136dec','#8b5cf6','#10b981','#f59e0b',
+    '#ef4444','#06b6d4','#ec4899','#84cc16','#f97316'
+  ];
+
+  const byCategory = JSON.parse(document.getElementById('data-by-category').textContent);
+  const subs       = JSON.parse(document.getElementById('data-subs').textContent);
+
+  // ── Donut chart ─────────────────────────────────────────────────────────────
+  const donutEl = document.getElementById('donut-chart');
+  if (donutEl && Object.keys(byCategory).length > 0) {
+    new Chart(donutEl.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(byCategory),
+        datasets: [{
+          data: Object.values(byCategory),
+          backgroundColor: COLORS.slice(0, Object.keys(byCategory).length),
+          borderWidth: 2,
+          borderColor: '#fff',
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { family: 'Inter', size: 12 }, padding: 16 }
+          },
+          tooltip: {
+            callbacks: { label: ctx => ' ₱' + ctx.parsed.toFixed(2) + '/mo' }
+          }
+        },
+        cutout: '65%',
+      }
+    });
+  }
+
+  // ── Bar chart ───────────────────────────────────────────────────────────────
+  const barEl = document.getElementById('bar-chart');
+  if (barEl && subs.length > 0) {
+    const subData = subs.map(s => {
+      const p = parseFloat(s.price);
+      let monthly = p;
+      if (s.billing_cycle === 'yearly')  monthly = p / 12;
+      if (s.billing_cycle === 'weekly')  monthly = p * 4.33;
+      return { name: s.name, monthly: Math.round(monthly * 100) / 100 };
+    }).sort((a, b) => b.monthly - a.monthly).slice(0, 8);
+
+    new Chart(barEl.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: subData.map(s => s.name),
+        datasets: [{
+          label: 'Monthly (₱)',
+          data: subData.map(s => s.monthly),
+          backgroundColor: COLORS[0] + 'cc',
+          borderColor: COLORS[0],
+          borderWidth: 1.5,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ₱' + ctx.parsed.y.toFixed(2) + '/mo' } }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: v => '₱' + v, font: { family: 'Inter', size: 11 } },
+            grid: { color: '#f1f5f9' }
+          },
+          x: {
+            ticks: { font: { family: 'Inter', size: 11 } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

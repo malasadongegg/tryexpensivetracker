@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Subscriptions – Subscription Manager</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: { primary: "#136dec", "bg-light": "#f6f7f8" }, fontFamily: { display: ["Inter"] } } }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-display">
+
+<!-- ── Add Modal ─────────────────────────────────────────────────────────── -->
+<div id="add-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-xl w-[340px] shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-bold text-lg">Add Subscription</h2>
+      <button onclick="closeModal('add-modal')" class="text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form action="/add-subscription" method="POST" class="space-y-3">
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Service Name</label>
+        <input name="name" placeholder="e.g. Netflix" required
+          class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Category</label>
+        <select name="category" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40">
+          <option>General</option><option>Streaming</option><option>Software</option>
+          <option>Fitness</option><option>Music</option><option>Gaming</option>
+          <option>News</option><option>Cloud</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Price (₱)</label>
+        <input name="price" type="number" min="0" step="0.01" placeholder="0.00" required
+          class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Billing Cycle</label>
+        <select name="billing_cycle" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40">
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+          <option value="weekly">Weekly</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Next Billing Date</label>
+        <input name="next_billing_date" type="date" required id="add-date"
+          class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+      </div>
+      <button type="submit"
+        class="bg-primary text-white px-4 py-2.5 w-full rounded-lg font-semibold hover:bg-primary/90 transition-colors mt-1">
+        Add Subscription
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ── Edit Modal ─────────────────────────────────────────────────────────── -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-xl w-[340px] shadow-2xl">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-bold text-lg">Edit Subscription</h2>
+      <button onclick="closeModal('edit-modal')" class="text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form id="edit-form" action="" method="POST" class="space-y-3">
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Service Name</label>
+        <input id="edit-name" name="name" required
+          class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Category</label>
+        <select id="edit-category" name="category" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40">
+          <option>General</option><option>Streaming</option><option>Software</option>
+          <option>Fitness</option><option>Music</option><option>Gaming</option>
+          <option>News</option><option>Cloud</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Price (₱)</label>
+        <input id="edit-price" name="price" type="number" min="0" step="0.01" required
+          class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Billing Cycle</label>
+        <select id="edit-billing" name="billing_cycle" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40">
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+          <option value="weekly">Weekly</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Next Billing Date</label>
+        <input id="edit-date" name="next_billing_date" type="date" required
+          class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+      </div>
+      <button type="submit"
+        class="bg-primary text-white px-4 py-2.5 w-full rounded-lg font-semibold hover:bg-primary/90 transition-colors mt-1">
+        Save Changes
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
+  <aside class="w-64 bg-white border-r border-slate-200 p-6 flex flex-col flex-shrink-0">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
+      </div>
+      <h1 class="font-bold text-lg text-slate-900">Subscription Manager</h1>
+    </div>
+    <nav class="space-y-1 flex-1">
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors">
+        <span class="material-symbols-outlined text-lg text-slate-500">dashboard</span>Dashboard
+      </a>
+      <a href="/subscriptions" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm">
+        <span class="material-symbols-outlined text-lg text-white">receipt_long</span>Subscriptions
+      </a>
+      <a href="/insights" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors">
+        <span class="material-symbols-outlined text-lg text-slate-500">insights</span>Insights
+      </a>
+    </nav>
+    <div class="border-t border-slate-100 pt-4 mt-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+          {{ session.username[0] | upper }}
+        </div>
+        <span class="text-sm font-medium text-slate-700">{{ session.username }}</span>
+      </div>
+      <a href="/logout" class="flex items-center gap-2 text-sm text-slate-500 hover:text-red-500 transition-colors">
+        <span class="material-symbols-outlined text-lg">logout</span>Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────────────────── -->
+  <main class="flex-1 overflow-y-auto p-8">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900">Active Subscriptions</h1>
+        <p class="text-slate-500 text-sm mt-0.5">Manage your recurring expenses</p>
+      </div>
+      <button onclick="openModal('add-modal')"
+        class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary/90 transition-colors">
+        <span class="material-symbols-outlined text-lg">add</span>Add Subscription
+      </button>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium
+          {{ 'bg-red-50 text-red-600 border border-red-200' if category == 'error' else 'bg-emerald-50 text-emerald-600 border border-emerald-200' }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- Search + filter -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col lg:flex-row gap-4 mb-6">
+      <div class="relative flex-1">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+        <input id="search-input" oninput="filterTable()"
+          class="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          placeholder="Search subscriptions..." type="text"/>
+      </div>
+      <div class="flex gap-2 overflow-x-auto no-scrollbar">
+        {% set categories = ['All', 'Streaming', 'Software', 'Fitness', 'Music', 'Gaming', 'Cloud', 'Other'] %}
+        {% for cat in categories %}
+        <button onclick="setFilter('{{ cat }}', this)"
+          class="filter-btn {% if loop.first %}bg-primary/10 text-primary border-primary/20{% else %}bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100{% endif %} px-4 h-11 rounded-lg font-medium border transition-colors whitespace-nowrap text-sm">
+          {{ cat }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Service</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Category</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Price</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Next Renewal</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+
+            {% for sub in subs %}
+            <tr class="hover:bg-slate-50/50 transition-colors group sub-row"
+                data-name="{{ sub.name | lower }}"
+                data-category="{{ (sub.category or 'General') | lower }}">
+
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-white font-black flex-shrink-0">
+                    {{ sub.name[0] | upper }}
+                  </div>
+                  <span class="font-semibold text-slate-900">{{ sub.name }}</span>
+                </div>
+              </td>
+
+              <td class="px-6 py-4">
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                  {{ sub.category or 'General' }}
+                </span>
+              </td>
+
+              <td class="px-6 py-4 text-right font-medium text-sm">
+                ₱{{ "%.2f" | format(sub.price | float) }}
+                <span class="text-slate-400 text-xs">/{{ sub.billing_cycle }}</span>
+              </td>
+
+              <td class="px-6 py-4 text-sm text-slate-600">{{ sub.next_billing_date }}</td>
+
+              <td class="px-6 py-4">
+                {% if sub.overdue %}
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-600">Overdue</span>
+                {% elif sub.due_soon %}
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-600">Due Soon</span>
+                {% else %}
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-600">Active</span>
+                {% endif %}
+              </td>
+
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <!-- Edit button -->
+                  <button
+                    class="edit-btn p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors"
+                    title="Edit"
+                    data-id="{{ sub.id }}"
+                    data-name="{{ sub.name | e }}"
+                    data-category="{{ sub.category or 'General' }}"
+                    data-price="{{ sub.price }}"
+                    data-billing="{{ sub.billing_cycle }}"
+                    data-date="{{ sub.next_billing_date }}">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                  <!-- Delete button -->
+                  <form action="/delete-subscription/{{ sub.id }}" method="POST"
+                    onsubmit="return confirm('Delete {{ sub.name | e }}?')">
+                    <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="Delete">
+                      <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                  </form>
+                </div>
+              </td>
+
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="px-6 py-16 text-center text-slate-400">
+                <span class="material-symbols-outlined text-4xl block mb-2">inbox</span>
+                No subscriptions yet. Add one above!
+              </td>
+            </tr>
+            {% endfor %}
+
+          </tbody>
+        </table>
+      </div>
+      <div class="bg-slate-50/50 px-6 py-3 border-t border-slate-200">
+        <p class="text-xs text-slate-500" id="row-count">
+          {{ subs | length }} subscription{{ 's' if subs | length != 1 else '' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">payments</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Total</p>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ total }}</h3>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <span class="material-symbols-outlined">event_repeat</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Due This Week</p>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">{{ upcoming_count }}</h3>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined">trending_up</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Annual Estimated</p>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ annual }}</h3>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Modals ────────────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('#add-modal, #edit-modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') ['add-modal','edit-modal'].forEach(closeModal);
+});
+
+// Wire up edit buttons via data attributes
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.edit-btn');
+  if (!btn) return;
+  const d = btn.dataset;
+  document.getElementById('edit-form').action    = '/edit-subscription/' + d.id;
+  document.getElementById('edit-name').value     = d.name;
+  document.getElementById('edit-price').value    = d.price;
+  document.getElementById('edit-date').value     = d.date;
+  document.getElementById('edit-billing').value  = d.billing;
+  document.getElementById('edit-category').value = d.category;
+  openModal('edit-modal');
+});
+// ── Filter ────────────────────────────────────────────────────────────────────
+let activeFilter = 'all';
+
+function setFilter(value, btn) {
+  activeFilter = value.toLowerCase();
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('bg-primary/10','text-primary','border-primary/20');
+    b.classList.add('bg-slate-50','text-slate-600','border-slate-200');
+  });
+  btn.classList.add('bg-primary/10','text-primary','border-primary/20');
+  btn.classList.remove('bg-slate-50','text-slate-600','border-slate-200');
+  filterTable();
+}
+
+function filterTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const rows   = document.querySelectorAll('.sub-row');
+  let visible  = 0;
+  rows.forEach(row => {
+    const matchSearch = !search || row.dataset.name.includes(search) || row.dataset.category.includes(search);
+    const matchFilter = activeFilter === 'all' || row.dataset.category === activeFilter;
+    if (matchSearch && matchFilter) { row.classList.remove('hidden'); visible++; }
+    else row.classList.add('hidden');
+  });
+  document.getElementById('row-count').textContent =
+    visible + ' subscription' + (visible !== 1 ? 's' : '');
+}
+
+// ── Restrict date inputs to today or future ───────────────────────────────────
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('add-date').min  = today;
+document.getElementById('edit-date').min = today;
+</script>
+</body>
+</html>
