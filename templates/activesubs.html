@@ -123,12 +123,12 @@
 <div class="flex h-screen overflow-hidden">
 
   <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
-  <aside class="w-64 bg-white border-r border-slate-200 p-6 flex flex-col flex-shrink-0">
+  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col flex-shrink-0">
     <div class="flex items-center gap-3 mb-8">
       <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
       </div>
-      <h1 class="font-bold text-lg text-slate-900">SubManager</h1>
+      <h1 class="font-bold text-lg text-slate-900 dark:text-slate-100">SubManager</h1>
     </div>
     <nav class="space-y-1 flex-1">
       <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors">
@@ -168,7 +168,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
       <div>
         <h1 class="text-2xl font-extrabold text-slate-900">Active Subscriptions</h1>
-        <p class="text-slate-500 text-sm mt-0.5">Manage your recurring expenses</p>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Manage your recurring expenses</p>
       </div>
       <button onclick="openModal('add-modal')"
         class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary/90 transition-colors">
@@ -186,11 +186,11 @@
     {% endwith %}
 
     <!-- Search + filter -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-col lg:flex-row gap-4 mb-6">
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row gap-4 mb-6">
       <div class="relative flex-1">
         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
         <input id="search-input" oninput="filterTable()"
-          class="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          class="w-full h-11 pl-11 pr-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40"
           placeholder="Search subscriptions..." type="text"/>
       </div>
       <div class="flex gap-2 overflow-x-auto no-scrollbar">
@@ -205,23 +205,23 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left">
-          <thead class="bg-slate-50 border-b border-slate-200">
+          <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
             <tr>
-              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Service</th>
-              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Category</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Service</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</th>
               <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Price</th>
-              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Next Renewal</th>
-              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Next Renewal</th>
+              <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
               <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
 
             {% for sub in subs %}
-            <tr class="hover:bg-slate-50/50 transition-colors group sub-row"
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group sub-row"
                 data-name="{{ sub.name | lower }}"
                 data-category="{{ (sub.category or 'General') | lower }}">
 
@@ -230,12 +230,12 @@
                   <div class="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-white font-black flex-shrink-0">
                     {{ sub.name[0] | upper }}
                   </div>
-                  <span class="font-semibold text-slate-900">{{ sub.name }}</span>
+                  <span class="font-semibold text-slate-900 dark:text-slate-100">{{ sub.name }}</span>
                 </div>
               </td>
 
               <td class="px-6 py-4">
-                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                   {{ sub.category or 'General' }}
                 </span>
               </td>
@@ -245,7 +245,7 @@
                 <span class="text-slate-400 text-xs">/{{ sub.billing_cycle }}</span>
               </td>
 
-              <td class="px-6 py-4 text-sm text-slate-600">{{ sub.next_billing_date }}</td>
+              <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{{ sub.next_billing_date }}</td>
 
               <td class="px-6 py-4">
                 {% if sub.overdue %}
@@ -294,8 +294,8 @@
           </tbody>
         </table>
       </div>
-      <div class="bg-slate-50/50 px-6 py-3 border-t border-slate-200">
-        <p class="text-xs text-slate-500" id="row-count">
+      <div class="bg-slate-50/50 dark:bg-slate-800/50 px-6 py-3 border-t border-slate-200 dark:border-slate-700">
+        <p class="text-xs text-slate-500 dark:text-slate-400" id="row-count">
           {{ subs | length }} subscription{{ 's' if subs | length != 1 else '' }}
         </p>
       </div>

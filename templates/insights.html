@@ -36,12 +36,12 @@
 <div class="flex h-screen overflow-hidden">
 
   <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
-  <aside class="w-64 bg-white border-r border-slate-200 p-6 flex flex-col flex-shrink-0">
+  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col flex-shrink-0">
     <div class="flex items-center gap-3 mb-8">
       <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
       </div>
-      <h1 class="font-bold text-lg text-slate-900">SubManager</h1>
+      <h1 class="font-bold text-lg text-slate-900 dark:text-slate-100">SubManager</h1>
     </div>
     <nav class="space-y-1 flex-1">
       <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 font-medium text-sm transition-colors">
@@ -79,13 +79,13 @@
   <main class="flex-1 p-8 overflow-y-auto">
 
     <div class="mb-8">
-      <h2 class="text-2xl font-bold text-slate-900">Insights</h2>
-      <p class="text-slate-500 text-sm mt-0.5">A breakdown of your subscription spending</p>
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Insights</h2>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">A breakdown of your subscription spending</p>
     </div>
 
     <!-- Top stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
         <div class="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-primary">
           <span class="material-symbols-outlined">payments</span>
         </div>
@@ -94,7 +94,7 @@
           <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ total }}</h3>
         </div>
       </div>
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
         <div class="h-11 w-11 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
           <span class="material-symbols-outlined">calendar_month</span>
         </div>
@@ -103,7 +103,7 @@
           <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ annual }}</h3>
         </div>
       </div>
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
         <div class="h-11 w-11 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
           <span class="material-symbols-outlined">category</span>
         </div>
@@ -144,21 +144,21 @@
     </div>
 
     <!-- Breakdown table -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100">
-        <h3 class="font-bold text-slate-900">Spending Breakdown</h3>
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-slate-900 dark:text-slate-100">Spending Breakdown</h3>
       </div>
       <table class="w-full text-left">
-        <thead class="bg-slate-50 border-b border-slate-100">
+        <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
           <tr>
-            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Service</th>
-            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Category</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Service</th>
+            <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</th>
             <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Billed</th>
             <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Monthly</th>
             <th class="px-6 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Annual</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
           {% for sub in subs %}
             {% set p = sub.price | float %}
             {% if sub.billing_cycle == 'yearly' %}
@@ -171,10 +171,10 @@
               {% set monthly = p %}
               {% set annual_val = (p * 12) | round(2) %}
             {% endif %}
-          <tr class="hover:bg-slate-50/50 transition-colors">
-            <td class="px-6 py-4 font-medium text-slate-900">{{ sub.name }}</td>
+          <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+            <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">{{ sub.name }}</td>
             <td class="px-6 py-4">
-              <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+              <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                 {{ sub.category or 'General' }}
               </span>
             </td>
@@ -182,8 +182,8 @@
               ₱{{ "%.2f" | format(p) }}
               <span class="text-slate-400 text-xs">/{{ sub.billing_cycle }}</span>
             </td>
-            <td class="px-6 py-4 text-right text-sm font-medium text-slate-900">₱{{ "%.2f" | format(monthly) }}</td>
-            <td class="px-6 py-4 text-right text-sm font-medium text-slate-900">₱{{ "%.2f" | format(annual_val) }}</td>
+            <td class="px-6 py-4 text-right text-sm font-medium text-slate-900 dark:text-slate-100">₱{{ "%.2f" | format(monthly) }}</td>
+            <td class="px-6 py-4 text-right text-sm font-medium text-slate-900 dark:text-slate-100">₱{{ "%.2f" | format(annual_val) }}</td>
           </tr>
           {% else %}
           <tr>
@@ -271,7 +271,7 @@
           y: {
             beginAtZero: true,
             ticks: { callback: v => '₱' + v, font: { family: 'Inter', size: 11 } },
-            grid: { color: '#f1f5f9' }
+            grid: { color: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#1e293b' : '#f1f5f9' }
           },
           x: {
             ticks: { font: { family: 'Inter', size: 11 } },
@@ -297,6 +297,13 @@ function toggleDark() {
   const isDark = !html.classList.contains('dark');
   localStorage.setItem('darkMode', isDark);
   applyDark(isDark);
+  // Update chart colors on theme change
+  Chart.helpers.each(Chart.instances, chart => {
+    if (chart.config.type === 'bar') {
+      chart.options.scales.y.grid.color = isDark ? '#1e293b' : '#f1f5f9';
+      chart.update();
+    }
+  });
 }
 </script>
 </body>
