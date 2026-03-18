@@ -200,14 +200,9 @@ function toggleDark() {
 <script>
 // ── Service Worker ────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/static/sw.js')
-      .then(reg => {
-        console.log('SW registered');
-        // Check for due soon subscriptions and notify
-        checkDueSoon(reg);
-      })
-      .catch(err => console.log('SW error:', err));
+  // Unregister any existing service workers to fix caching issues
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
   });
 }
 
