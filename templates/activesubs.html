@@ -19,6 +19,12 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#136dec"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="SubManager"/>
+<link rel="apple-touch-icon" href="/static/icon-192.png"/>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 font-display transition-colors duration-200">
 
@@ -123,7 +129,7 @@
 <div class="flex h-screen overflow-hidden">
 
   <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
-  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col flex-shrink-0">
+  <aside class="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex-col flex-shrink-0">
     <div class="flex items-center gap-3 mb-8">
       <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
@@ -163,7 +169,7 @@
   </aside>
 
   <!-- ── Main ───────────────────────────────────────────────────────────── -->
-  <main class="flex-1 overflow-y-auto p-8">
+  <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8">
 
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
       <div>
@@ -308,8 +314,8 @@
           <span class="material-symbols-outlined">payments</span>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Total</p>
-          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ total }}</h3>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Monthly Total</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-slate-100 mt-0.5">₱{{ total }}</h3>
         </div>
       </div>
       <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4">
@@ -317,8 +323,8 @@
           <span class="material-symbols-outlined">event_repeat</span>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Due This Week</p>
-          <h3 class="text-xl font-black text-slate-900 mt-0.5">{{ upcoming_count }}</h3>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Due This Week</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-slate-100 mt-0.5">{{ upcoming_count }}</h3>
         </div>
       </div>
       <div class="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4">
@@ -326,8 +332,8 @@
           <span class="material-symbols-outlined">trending_up</span>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Annual Estimated</p>
-          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ annual }}</h3>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Annual Estimated</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-slate-100 mt-0.5">₱{{ annual }}</h3>
         </div>
       </div>
     </div>
@@ -409,5 +415,68 @@ function toggleDark() {
   applyDark(isDark);
 }
 </script>
+
+<script>
+// ── Service Worker ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/static/sw.js')
+      .then(reg => {
+        console.log('SW registered');
+        // Check for due soon subscriptions and notify
+        checkDueSoon(reg);
+      })
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// ── Push notifications ────────────────────────────────────────────────────────
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') return;
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    showLocalNotification('SubManager', 'Notifications enabled! You will be notified of upcoming renewals.');
+  }
+}
+
+function showLocalNotification(title, body) {
+  if (Notification.permission === 'granted') {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification(title, {
+        body,
+        icon: '/static/icon-192.png',
+        badge: '/static/icon-192.png',
+        tag: 'submanager',
+      });
+    });
+  }
+}
+
+// Request permission on load
+window.addEventListener('load', () => {
+  setTimeout(requestNotificationPermission, 3000);
+});
+</script>
+
+<!-- ── Mobile Bottom Navigation ───────────────────────────────────────────── -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex md:hidden z-50">
+  <a href="/" class="flex-1 flex flex-col items-center py-3 gap-1 text-slate-400 dark:text-slate-500">
+    <span class="material-symbols-outlined text-xl">dashboard</span>
+    <span class="text-xs font-medium">Dashboard</span>
+  </a>
+  <a href="/subscriptions" class="flex-1 flex flex-col items-center py-3 gap-1 text-primary">
+    <span class="material-symbols-outlined text-xl">receipt_long</span>
+    <span class="text-xs font-medium">Subs</span>
+  </a>
+  <a href="/insights" class="flex-1 flex flex-col items-center py-3 gap-1 text-slate-400 dark:text-slate-500">
+    <span class="material-symbols-outlined text-xl">insights</span>
+    <span class="text-xs font-medium">Insights</span>
+  </a>
+  <a href="/profile" class="flex-1 flex flex-col items-center py-3 gap-1 text-slate-400 dark:text-slate-500">
+    <span class="material-symbols-outlined text-xl">person</span>
+    <span class="text-xs font-medium">Profile</span>
+  </a>
+</nav>
 </body>
 </html>

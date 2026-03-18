@@ -18,6 +18,12 @@
   body { font-family: 'Inter', sans-serif; }
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#136dec"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="SubManager"/>
+<link rel="apple-touch-icon" href="/static/icon-192.png"/>
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 font-display transition-colors duration-200">
@@ -36,7 +42,7 @@
 <div class="flex h-screen overflow-hidden">
 
   <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
-  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col flex-shrink-0">
+  <aside class="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex-col flex-shrink-0">
     <div class="flex items-center gap-3 mb-8">
       <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
@@ -76,7 +82,7 @@
   </aside>
 
   <!-- ── Main ───────────────────────────────────────────────────────────── -->
-  <main class="flex-1 p-8 overflow-y-auto">
+  <main class="flex-1 p-4 md:p-8 overflow-y-auto pb-20 md:pb-8">
 
     <div class="mb-8">
       <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Insights</h2>
@@ -90,8 +96,8 @@
           <span class="material-symbols-outlined">payments</span>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Total</p>
-          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ total }}</h3>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Monthly Total</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-slate-100 mt-0.5">₱{{ total }}</h3>
         </div>
       </div>
       <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
@@ -99,8 +105,8 @@
           <span class="material-symbols-outlined">calendar_month</span>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Annual Estimated</p>
-          <h3 class="text-xl font-black text-slate-900 mt-0.5">₱{{ annual }}</h3>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Annual Estimated</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-slate-100 mt-0.5">₱{{ annual }}</h3>
         </div>
       </div>
       <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
@@ -108,8 +114,8 @@
           <span class="material-symbols-outlined">category</span>
         </div>
         <div>
-          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Categories</p>
-          <h3 class="text-xl font-black text-slate-900 mt-0.5">{{ by_category | length }}</h3>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categories</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-slate-100 mt-0.5">{{ by_category | length }}</h3>
         </div>
       </div>
     </div>
@@ -119,8 +125,8 @@
 
       <!-- Donut -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 class="font-bold text-slate-900 mb-1">Spending by Category</h3>
-        <p class="text-slate-500 text-xs mb-4">Monthly equivalent per category</p>
+        <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-1">Spending by Category</h3>
+        <p class="text-slate-500 dark:text-slate-400 text-xs mb-4">Monthly equivalent per category</p>
         {% if by_category %}
           <div class="flex items-center justify-center">
             <canvas id="donut-chart" style="max-height:260px;"></canvas>
@@ -132,8 +138,8 @@
 
       <!-- Bar -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 class="font-bold text-slate-900 mb-1">Top Subscriptions by Cost</h3>
-        <p class="text-slate-500 text-xs mb-4">Monthly equivalent per service</p>
+        <h3 class="font-bold text-slate-900 dark:text-slate-100 mb-1">Top Subscriptions by Cost</h3>
+        <p class="text-slate-500 dark:text-slate-400 text-xs mb-4">Monthly equivalent per service</p>
         {% if subs %}
           <canvas id="bar-chart" style="max-height:260px;"></canvas>
         {% else %}
@@ -199,6 +205,11 @@
 
 <!-- Pure JavaScript — zero Jinja tags, zero linter errors -->
 <script>
+  // Detect dark mode for charts
+  const isDarkMode = () => document.getElementById('html-root').classList.contains('dark');
+  const gridColor  = () => isDarkMode() ? '#1e293b' : '#f1f5f9';
+  const textColor  = () => isDarkMode() ? '#94a3b8' : '#64748b';
+
   const COLORS = [
     '#136dec','#8b5cf6','#10b981','#f59e0b',
     '#ef4444','#06b6d4','#ec4899','#84cc16','#f97316'
@@ -226,7 +237,7 @@
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { font: { family: 'Inter', size: 12 }, padding: 16 }
+            labels: { font: { family: 'Inter', size: 12 }, padding: 16, color: textColor() }
           },
           tooltip: {
             callbacks: { label: ctx => ' ₱' + ctx.parsed.toFixed(2) + '/mo' }
@@ -274,7 +285,7 @@
             grid: { color: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#1e293b' : '#f1f5f9' }
           },
           x: {
-            ticks: { font: { family: 'Inter', size: 11 } },
+            ticks: { font: { family: 'Inter', size: 11 }, color: textColor() },
             grid: { display: false }
           }
         }
@@ -306,5 +317,68 @@ function toggleDark() {
   });
 }
 </script>
+
+<script>
+// ── Service Worker ────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/static/sw.js')
+      .then(reg => {
+        console.log('SW registered');
+        // Check for due soon subscriptions and notify
+        checkDueSoon(reg);
+      })
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// ── Push notifications ────────────────────────────────────────────────────────
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') return;
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    showLocalNotification('SubManager', 'Notifications enabled! You will be notified of upcoming renewals.');
+  }
+}
+
+function showLocalNotification(title, body) {
+  if (Notification.permission === 'granted') {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification(title, {
+        body,
+        icon: '/static/icon-192.png',
+        badge: '/static/icon-192.png',
+        tag: 'submanager',
+      });
+    });
+  }
+}
+
+// Request permission on load
+window.addEventListener('load', () => {
+  setTimeout(requestNotificationPermission, 3000);
+});
+</script>
+
+<!-- ── Mobile Bottom Navigation ───────────────────────────────────────────── -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex md:hidden z-50">
+  <a href="/" class="flex-1 flex flex-col items-center py-3 gap-1 text-slate-400 dark:text-slate-500">
+    <span class="material-symbols-outlined text-xl">dashboard</span>
+    <span class="text-xs font-medium">Dashboard</span>
+  </a>
+  <a href="/subscriptions" class="flex-1 flex flex-col items-center py-3 gap-1 text-slate-400 dark:text-slate-500">
+    <span class="material-symbols-outlined text-xl">receipt_long</span>
+    <span class="text-xs font-medium">Subs</span>
+  </a>
+  <a href="/insights" class="flex-1 flex flex-col items-center py-3 gap-1 text-primary">
+    <span class="material-symbols-outlined text-xl">insights</span>
+    <span class="text-xs font-medium">Insights</span>
+  </a>
+  <a href="/profile" class="flex-1 flex flex-col items-center py-3 gap-1 text-slate-400 dark:text-slate-500">
+    <span class="material-symbols-outlined text-xl">person</span>
+    <span class="text-xs font-medium">Profile</span>
+  </a>
+</nav>
 </body>
 </html>

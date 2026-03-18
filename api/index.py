@@ -412,5 +412,39 @@ def update_color():
     return redirect(url_for('profile'))
 
 
+
+
+# ── Static files (manifest, sw, icons) ───────────────────────────────────────
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    from flask import send_from_directory
+    static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static')
+    return send_from_directory(static_dir, filename)
+
+
+# ── Offline page ──────────────────────────────────────────────────────────────
+@app.route('/offline')
+def offline():
+    return render_template('offline.html')
+
+
+# ── Push notification subscription ────────────────────────────────────────────
+@app.route('/push/subscribe', methods=['POST'])
+@login_required
+def push_subscribe():
+    import json
+    data = request.get_json()
+    db     = get_db()
+    cursor = db.cursor()
+    # Store push subscription in users table
+    cursor.execute(
+        "UPDATE users SET push_subscription = %s WHERE id = %s",
+        (json.dumps(data), session['user_id'])
+    )
+    db.commit()
+    cursor.close(); db.close()
+    return {'success': True}
+
+
 if __name__ == '__main__':
     app.run(debug=True)
