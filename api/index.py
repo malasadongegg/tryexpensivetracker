@@ -14,13 +14,6 @@ app = Flask(__name__, template_folder=template_path)
 app.secret_key = os.getenv("SECRET_KEY", "fallback-secret-key")
 
 
-@app.route('/test')
-def test():
-    exists = os.path.exists(template_path)
-    files = str(os.listdir(template_path)) if exists else 'NOT FOUND'
-    return 'Template path: ' + template_path + ' | Exists: ' + str(exists) + ' | Files: ' + files
-
-
 # ── Database ──────────────────────────────────────────────────────────────────
 def get_db():
     return psycopg2.connect(
@@ -309,6 +302,114 @@ def insights():
         annual=annual,
         upcoming_count=upcoming_count,
     )
+
+
+
+# ── Profile ───────────────────────────────────────────────────────────────────
+@app.route('/profile')
+@login_required
+def profile():
+    db     = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+    user = cursor.fetchone()
+    cursor.close(); db.close()
+    return render_template('profile.html', user=user)
+
+
+@app.route('/profile/update-username', methods=['POST'])
+@login_required
+def update_username():
+    new_username = request.form['username'].strip()
+    if not new_username:
+        flash('Username cannot be empty.', 'error')
+        return redirect(url_for('profile'))
+
+    db     = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT id FROM users WHERE username = %s AND id != %s", (new_username, session['user_id']))
+    if cursor.fetchone():
+        flash('Username already taken.', 'error')
+        cursor.close(); db.close()
+        return redirect(url_for('profile'))
+
+    cursor.execute("UPDATE users SET username = %s WHERE id = %s", (new_username, session['user_id']))
+    db.commit()
+    cursor.close(); db.close()
+    session['username'] = new_username
+    flash('Username updated successfully.', 'success')
+    return redirect(url_for('profile'))
+
+
+@app.route('/profile/update-password', methods=['POST'])
+@login_required
+def update_password():
+    current  = request.form['current_password']
+    new_pass = request.form['new_password']
+    confirm  = request.form['confirm_password']
+
+    db     = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+    user = cursor.fetchone()
+
+    if not check_password_hash(user['password'], current):
+        flash('Current password is incorrect.', 'error')
+        cursor.close(); db.close()
+        return redirect(url_for('profile'))
+
+    if new_pass != confirm:
+        flash('New passwords do not match.', 'error')
+        cursor.close(); db.close()
+        return redirect(url_for('profile'))
+
+    if len(new_pass) < 6:
+        flash('Password must be at least 6 characters.', 'error')
+        cursor.close(); db.close()
+        return redirect(url_for('profile'))
+
+    cursor.execute("UPDATE users SET password = %s WHERE id = %s",
+        (generate_password_hash(new_pass), session['user_id']))
+    db.commit()
+    cursor.close(); db.close()
+    flash('Password updated successfully.', 'success')
+    return redirect(url_for('profile'))
+
+
+@app.route('/profile/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    password = request.form['password']
+
+    db     = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
+    user = cursor.fetchone()
+
+    if not check_password_hash(user['password'], password):
+        flash('Incorrect password.', 'error')
+        cursor.close(); db.close()
+        return redirect(url_for('profile'))
+
+    cursor.execute("DELETE FROM users WHERE id = %s", (session['user_id'],))
+    db.commit()
+    cursor.close(); db.close()
+    session.clear()
+    return redirect(url_for('login'))
+
+
+
+@app.route('/profile/update-color', methods=['POST'])
+@login_required
+def update_color():
+    color = request.form.get('avatar_color', '#136dec')
+    db     = get_db()
+    cursor = db.cursor()
+    cursor.execute("UPDATE users SET avatar_color = %s WHERE id = %s", (color, session['user_id']))
+    db.commit()
+    cursor.close(); db.close()
+    flash('Avatar color updated.', 'success')
+    return redirect(url_for('profile'))
 
 
 if __name__ == '__main__':
