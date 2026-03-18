@@ -185,11 +185,22 @@
 const html  = document.getElementById('html-root');
 const icon  = document.getElementById('dark-icon');
 const label = document.getElementById('dark-label');
+
 function applyDark(isDark) {
-  if (isDark) { html.classList.add('dark'); icon.textContent = 'light_mode'; label.textContent = 'Light Mode'; }
-  else { html.classList.remove('dark'); icon.textContent = 'dark_mode'; label.textContent = 'Dark Mode'; }
+  if (isDark) { html.classList.add('dark'); if(icon) { icon.textContent = 'light_mode'; label.textContent = 'Light Mode'; } }
+  else { html.classList.remove('dark'); if(icon) { icon.textContent = 'dark_mode'; label.textContent = 'Dark Mode'; } }
 }
-applyDark(localStorage.getItem('darkMode') === 'true');
+
+// Use system preference, allow manual override
+const savedPref = localStorage.getItem('darkMode');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+applyDark(savedPref !== null ? savedPref === 'true' : systemDark);
+
+// Listen for system preference changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  if (localStorage.getItem('darkMode') === null) applyDark(e.matches);
+});
+
 function toggleDark() {
   const isDark = !html.classList.contains('dark');
   localStorage.setItem('darkMode', isDark);
